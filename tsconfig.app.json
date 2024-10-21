@@ -19,7 +19,12 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-
+        "compilerOptions": {
+            "baseUrl": ".",
+            "paths": {
+                "@/*": ["./src/*"]
+            }
+        },
         "baseUrl": ".",
         "paths": {
             "@/*": ["./src/*"]
