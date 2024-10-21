@@ -1,10 +1,36 @@
 {
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Capability for the main window",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "shell:allow-open"
-  ]
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "Capability for the main window",
+    "windows": ["main"],
+    "permissions": [
+        "core:default",
+        "shell:allow-open",
+        "fs:default",
+        "os:default",
+        "log:default",
+        "fs:allow-open",
+        "fs:allow-write",
+        "fs:allow-read",
+        "fs:allow-rename",
+        "fs:allow-mkdir",
+        "fs:allow-remove",
+        "fs:allow-exists",
+        "fs:allow-write-text-file",
+        "fs:scope-download-recursive",
+        "fs:scope-resource-recursive",
+        "fs:allow-appconfig-read-recursive",
+        "fs:allow-appconfig-write-recursive",
+        {
+            "identifier": "fs:allow-exists",
+            "allow": [
+                {
+                    "path": "C:\\Users\\sam\\AppData\\Roaming\\com.learnwithai.app\\*"
+                },
+                {
+                    "path": "C:\\Users\\sam\\AppData\\Roaming\\com.learnwithai.app\\"
+                }
+            ]
+        }
+    ]
 }
