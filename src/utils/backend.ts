@@ -8,7 +8,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { debug, info } from "@tauri-apps/plugin-log";
 
-import ollama from "ollama";
+import ollama from "ollama/browser";
 import Subject, { SubjectSignature } from "./classes";
 import { appConfigDir } from "@tauri-apps/api/path";
 
@@ -34,7 +34,7 @@ export async function getSubjects(): Promise<SubjectSignature[]> {
     debug(`${files.length} subjects found`);
 
     for (const file of files) {
-        const id = parseInt(file.name.split("-")[1].split(".")[0]);
+        const id = Number.parseInt(file.name.split("-")[1].split(".")[0]);
         const sub = await getSubject(id);
         info(`Subject id: ${id}`);
         subjects.push(
@@ -42,7 +42,7 @@ export async function getSubjects(): Promise<SubjectSignature[]> {
         );
     }
 
-    info(`finished getting subjects`);
+    info("finished getting subjects");
 
     return subjects;
 }
@@ -82,12 +82,13 @@ export async function addSubject(name: string, desc: string): Promise<number> {
 
     const modelfile = `
         FROM mistral
-        SYSTEM "You are a teacher for ${name} subject. You can send messages to students and generate flashcards from the messages. You follow instructions very closely. You are also very good at teaching. You are very patient and you are very good at explaining things. Rather than giving the answer straight-up, you prefer to guide the students to the answer."
+        SYSTEM "You are a teacher for ${name} subject. You can send messages to students and generate flashcards from the messages. You follow instructions very closely. You are also very good at teaching. You are very patient and you are very good at explaining things. Rather than giving the answer straight-up, you prefer to guide the students to the answer. You like to keep things short and understandable, but will give a long explanation when needed. Flashcards will be generated with this formula: <<<[{"question": "what is 1 + 1", "answer": "2"}, {"question": "what is 2 + 2", "answer: "4"}]>>>. It needs to follow this json scheme and has to start with <<< and end with >>>"
         `;
 
     info(`Creating model for subject: ${name} id: ${await id}`);
+    // model name: first 3 letters of subject without spaces + id
     ollama.create({
-        model: `${name}-${await id}`,
+        model: `${name.replace(" ", "").slice(0, 3)}-${await id}`,
         modelfile: modelfile,
     });
 
@@ -99,10 +100,10 @@ export async function addSubject(name: string, desc: string): Promise<number> {
     return id;
 }
 
-export function updateSubject(subject: Subject): void {
+export async function updateSubject(subject: Subject) {
     const configDir = getConfigDir();
 
-    const file = `${configDir}/subject-${subject.getId()}.json`;
+    const file = `${await configDir}/subject-${subject.getId()}.json`;
     const data = JSON.stringify(subject);
 
     info(`Updating subject: ${subject.getName()} id: ${subject.getId()}`);

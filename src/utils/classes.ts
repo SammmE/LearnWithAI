@@ -1,4 +1,5 @@
-import ollama from "ollama";
+import { info } from "@tauri-apps/plugin-log";
+import ollama, { type ChatResponse } from "ollama/browser";
 
 class Subject {
     private id: number;
@@ -37,7 +38,11 @@ class Subject {
     }
 
     // utilities
-    public async sendMessage(message: Message): Promise<any> {
+    public async sendMessage(
+        message: Message,
+        textUpdate: (chunk: string) => void
+    ): Promise<string> {
+        info(`sending message to ${this.name}-${this.id}`);
         this.conversations.push(message);
 
         // turn conversations into ollama messages (array of { role: '', content: '' })
@@ -48,13 +53,27 @@ class Subject {
             };
         });
 
-        const response = await ollama.chat({
-            model: "llama3.1",
+        const responseIterator = await ollama.chat({
+            model: `${this.name.replace(" ", "").slice(0, 3)}-${this.id}`,
             messages: ollama_msgs,
             stream: true,
         });
 
-        return response;
+        let res = "";
+
+        for await (const response of responseIterator) {
+            res += response.message.content;
+            textUpdate(res);
+        }
+
+        // add AI response to conversation
+        this.conversations.push({
+            id: this.conversations.length,
+            sender: "ai",
+            content: res,
+        });
+
+        return res;
     }
 
     public addMessageAI(message: Message): void {
@@ -71,43 +90,38 @@ class Subject {
 
         ollama_msgs.push({
             role: "user",
-            content: `Create flascards for this prompt: ${prompt}. Flashcards will be generated with this formula: question: {question here}, answer: {answer here}\n question: {question here}, answer: {answer here}. Follow all instructions closely! Remember: there should be no extra spaces or characters in the prompt other than the flashcards. The question and answer should be inside the curly braces. Anything outside of the curly braces will be ignored.`,
+            content: `Create flascards for this prompt: ${prompt}. Flashcards will be generated with this formula: <<<[{"question": "what is 1 + 1", "answer": "2"}, {"question": "what is 2 + 2", "answer: "4"}]>>>. It needs to follow this json scheme and has to start with <<< and end with >>>"`,
         });
 
         const response = await ollama.chat({
-            model: "llama3.1",
+            model: `${this.name.replace(" ", "").slice(0, 3)}-${this.id}`,
             messages: ollama_msgs,
         });
 
-        // parse response into flashcards
-        // look for the question keyword, and if it is followed by a colon, then it is a question.
-        // repeat for answer
-        // store as flashcard, then repeat until no more questions or answers are found
-        const flashcards: Flashcard[] = [];
-        var questions_reg = response.message.content.match(/question: {.*?}/g);
-        var answers_reg = response.message.content.match(/answer: {.*?}/g);
+        return this.parseFlashcards(response.message.content);
+    }
 
-        const min = Math.min(
-            questions_reg?.length ?? 0,
-            answers_reg?.length ?? 0
-        );
-        const questions = questions_reg?.slice(0, min) ?? [];
-        const answers = answers_reg?.slice(0, min) ?? [];
+    public parseFlashcards(prompt: string): Flashcard[] {
+        // parse flashcards
+        const start = prompt.indexOf("<<<");
+        const end = prompt.indexOf(">>>");
+        const flashcardString = prompt.slice(start + 3, end);
 
-        for (let i = 0; i < questions.length; i++) {
-            // remove first 11 characters and last character
-            const question = questions[i].slice(11, -1);
-            const answer = answers[i].slice(9, -1);
-            flashcards.push({
-                id: this.cards.length + i,
-                question: question,
-                answer: answer,
+        const flashcards = JSON.parse(flashcardString);
+        const cards: Flashcard[] = [];
+
+        for (const card of flashcards) {
+            cards.push({
+                id: cards.length,
+                question: card.question,
+                answer: card.answer,
             });
+            this.addFlashcard(cards[cards.length - 1]);
         }
 
-        this.cards = this.cards.concat(flashcards);
-
-        return flashcards;
+        info(`Generated ${cards.length} flashcards`);
+        info(`Flashcards: ${JSON.stringify(cards)}`);
+        return cards;
     }
 
     public addFlashcard(flashcard: Flashcard): void {

@@ -1,12 +1,13 @@
 import "@/App.css";
 import Layout from "@/components/layout";
+import { Chat } from "@/components/chat";
 
 function Home() {
     return (
         <Layout>
-            <div className="flex min-h-screen">
+            <div className="flex w-full">
                 <div className="flex-grow p-4" style={{ flexBasis: "80%" }}>
-                    <h1>Left side content</h1>
+                    <Chat />
                 </div>
                 <div className="w-1/5 p-4 ml-auto">
                     <h1>Right side content</h1>

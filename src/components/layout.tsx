@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider";
@@ -25,13 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <SidebarProvider>
                 <AppSidebar />
-                <main className="w-screen">
-                    <div className="flex text-center">
-                        <SidebarTrigger />
-                        <h1 className="text-2xl font-bold ubuntu-bold text-center self-center mx-auto mt-4">{name == "" ? <LoadingSpinner /> : name}</h1>
-                    </div>
-                    {children}
-                </main>
+                {children}
                 <Toaster />
             </SidebarProvider>
         </ThemeProvider>

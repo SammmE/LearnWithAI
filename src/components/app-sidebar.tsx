@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { ModeToggle } from "./mode-toggle"
 import React from "react";
 import { getSubjects } from "@/utils/backend";
-import { SubjectSignature } from "@/utils/classes";
+import type { SubjectSignature } from "@/utils/classes";
 import { Button } from "./ui/button";
 import { SubjectLoader } from "@/utils/loader";
 import { CreateSubjectForm } from "./createSub"
@@ -73,7 +73,7 @@ function levenshteinDistance(a: string, b: string): number {
     return matrix[b.length][a.length];
 }
 
-function search(subjects: SubjectSignature[], query: string, resultLength: number = -1): SubjectSignature[] {
+function search(subjects: SubjectSignature[], query: string, resultLength = -1): SubjectSignature[] {
     if (query === "") {
         return subjects;
     }
@@ -112,8 +112,9 @@ export function AppSidebar() {
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     const [isCreateSub, setIsCreateSub] = React.useState<boolean>(false);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: ion like ts
     React.useEffect(() => {
-        info(`Grabbing subjects...`);
+        info("Grabbing subjects...");
         getSubjects().then((data) => {
             setSubjects(data);
             info(`${subjects.length} subjects loaded.`);
@@ -154,7 +155,7 @@ export function AppSidebar() {
                                 <DialogTitle>Create a new Subject</DialogTitle>
                                 <CreateSubjectForm finishCallback={() => {
                                     setIsCreateSub(false);
-                                    info(`Grabbing subjects...`);
+                                    info("Grabbing subjects...");
                                     getSubjects().then((data) => {
                                         setSubjects(data);
                                         info(`${subjects.length} subjects loaded.`);
