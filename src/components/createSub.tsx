@@ -28,6 +28,7 @@ export const createSubjectSchema = z.object({
         .max(255, { message: "name must be shorter than 255 characters" }),
 });
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function CreateSubjectForm({ finishCallback }: { finishCallback: (id: Promise<number>) => any }) {
     const form = useForm<z.infer<typeof createSubjectSchema>>({
         resolver: zodResolver(createSubjectSchema),

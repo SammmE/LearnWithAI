@@ -1,5 +1,5 @@
 import { info } from "@tauri-apps/plugin-log";
-import ollama, { type ChatResponse } from "ollama/browser";
+import ollama from "ollama/browser";
 
 class Subject {
     private id: number;
@@ -7,12 +7,20 @@ class Subject {
     private conversations: Message[];
     private cards: Flashcard[];
     private desc: string;
+    private flashcardChangeCallbacks: ((flashcards: Flashcard[]) => void)[] =
+        [];
 
-    constructor(id: number, name: string, desc: string) {
+    constructor(
+        id: number,
+        name: string,
+        desc: string,
+        conversations: Message[] = [],
+        cards: Flashcard[] = []
+    ) {
         this.id = id;
         this.name = name;
-        this.conversations = [];
-        this.cards = [];
+        this.conversations = conversations;
+        this.cards = cards;
         this.desc = desc;
     }
 
@@ -35,6 +43,12 @@ class Subject {
 
     public getDescription(): string {
         return this.desc;
+    }
+
+    public addFlashcardChangeCallback(
+        callback: (flashcards: Flashcard[]) => void
+    ): void {
+        this.flashcardChangeCallbacks.push(callback);
     }
 
     // utilities
@@ -70,7 +84,7 @@ class Subject {
         this.conversations.push({
             id: this.conversations.length,
             sender: "ai",
-            content: res,
+            content: res.replace(/<<<.*>>>/, ""),
         });
 
         return res;
@@ -101,7 +115,7 @@ class Subject {
         return this.parseFlashcards(response.message.content);
     }
 
-    public parseFlashcards(prompt: string): Flashcard[] {
+    public async parseFlashcards(prompt: string): Promise<Flashcard[]> {
         // parse flashcards
         const start = prompt.indexOf("<<<");
         const end = prompt.indexOf(">>>");
@@ -112,20 +126,29 @@ class Subject {
 
         for (const card of flashcards) {
             cards.push({
-                id: cards.length,
+                id: this.cards.length,
                 question: card.question,
                 answer: card.answer,
             });
-            this.addFlashcard(cards[cards.length - 1]);
+            this.addFlashcard(cards[cards.length - 1], false);
         }
 
         info(`Generated ${cards.length} flashcards`);
-        info(`Flashcards: ${JSON.stringify(cards)}`);
+
+        for (const callback of this.flashcardChangeCallbacks) {
+            callback(cards);
+        }
+
         return cards;
     }
 
-    public addFlashcard(flashcard: Flashcard): void {
+    public addFlashcard(flashcard: Flashcard, callback = true): void {
         this.cards.push(flashcard);
+        if (callback) {
+            for (const cb of this.flashcardChangeCallbacks) {
+                cb(this.cards);
+            }
+        }
     }
 }
 

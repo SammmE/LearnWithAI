@@ -56,7 +56,13 @@ export async function getSubject(id: number): Promise<Subject> {
     return readTextFile(file).then((data) => {
         info(`Subject data: ${data}`);
         const tempSub = JSON.parse(data);
-        return new Subject(tempSub.id, tempSub.name, tempSub.desc);
+        return new Subject(
+            tempSub.id,
+            tempSub.name,
+            tempSub.desc,
+            tempSub.conversations,
+            tempSub.cards
+        );
     });
 }
 
@@ -82,7 +88,7 @@ export async function addSubject(name: string, desc: string): Promise<number> {
 
     const modelfile = `
         FROM mistral
-        SYSTEM "You are a teacher for ${name} subject. You can send messages to students and generate flashcards from the messages. You follow instructions very closely. You are also very good at teaching. You are very patient and you are very good at explaining things. Rather than giving the answer straight-up, you prefer to guide the students to the answer. You like to keep things short and understandable, but will give a long explanation when needed. Flashcards will be generated with this formula: <<<[{"question": "what is 1 + 1", "answer": "2"}, {"question": "what is 2 + 2", "answer: "4"}]>>>. It needs to follow this json scheme and has to start with <<< and end with >>>"
+        SYSTEM "You are an AI tutor for ${name} subject. You can send messages to the student and generate flashcards from the messages. You follow instructions very closely. You are also very good at teaching. You are very patient and you are very good at explaining things. Rather than giving the answer straight-up, you prefer to guide the students to the answer. You like to keep things short and understandable, but will give a long explanation when needed. Flashcards will be generated only when asked to with this formula: <<<[{"question": "what is 1 + 1", "answer": "2"}, {"question": "what is 2 + 2", "answer: "4"}]>>>. It needs to follow this json scheme and has to start with <<< and end with >>>. One thing I would like you to keep in mind is that you simply answer questions, you don't have lesson plans of any of that. You will never create flashcards unless the student asks you to. Again, I will ephasize to NEVER create flashcards unless the student asks you to. You are a very good AI tutor."
         `;
 
     info(`Creating model for subject: ${name} id: ${await id}`);
@@ -96,7 +102,6 @@ export async function addSubject(name: string, desc: string): Promise<number> {
     writeTextFile(file, data, {
         baseDir: BaseDirectory.AppConfig,
     });
-
     return id;
 }
 

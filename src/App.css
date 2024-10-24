@@ -131,3 +131,11 @@
     font-weight: 700;
     font-style: italic;
 }
+
+.flashcard:hover {
+    box-shadow: 0 0 10px hsl(var(--accent-foreground));
+}
+
+.flashcard {
+    transition: all 0.2s ease-in-out;
+}

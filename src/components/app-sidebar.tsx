@@ -15,7 +15,6 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 
 import { Input } from "@/components/ui/input"
@@ -32,18 +31,6 @@ import { info } from "@tauri-apps/plugin-log"
 interface SearchResults {
     subject: SubjectSignature;
     distance: number;
-}
-
-function SubjectDescriptionLoader({ subjectId }: { subjectId: number }) {
-    const [description, setDescription] = React.useState<string>("");
-
-    React.useEffect(() => {
-        SubjectLoader.getInstance().loadSubject(subjectId).then((subject) => {
-            setDescription(subject.getDescription());
-        });
-    }, [subjectId]);
-
-    return <p>{description}</p>;
 }
 
 function levenshteinDistance(a: string, b: string): number {

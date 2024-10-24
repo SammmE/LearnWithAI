@@ -1,6 +1,7 @@
 import "@/App.css";
 import Layout from "@/components/layout";
 import { Chat } from "@/components/chat";
+import Flashcards from "@/components/flashcards";
 
 function Home() {
     return (
@@ -10,7 +11,7 @@ function Home() {
                     <Chat />
                 </div>
                 <div className="w-1/5 p-4 ml-auto">
-                    <h1>Right side content</h1>
+                    <Flashcards />
                 </div>
             </div>
         </Layout>
